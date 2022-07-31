@@ -1,8 +1,6 @@
 #!/usr/bin/python3
 from time import sleep
 import minimalmodbus
-import json
-
 
 instr = minimalmodbus.Instrument('COM5', 1)
 instr.serial.baudrate = 9600
