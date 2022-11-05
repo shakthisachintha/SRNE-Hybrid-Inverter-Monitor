@@ -3,6 +3,7 @@ import minimalmodbus
 from srnecommands import INVERTER_COMMANDS
 from enum import Enum
 
+
 class Units(Enum):
     POWER = 1
     CURRRENT = 2
@@ -12,8 +13,25 @@ class Units(Enum):
     FREQUENCY = 6
 
 
+class OutputPriority(Enum):
+    SOL = 0
+    UTI = 1
+    SBU = 2
+
+
+class ChargerPriority(Enum):
+    CSO = 0
+    CUB = 1
+    SNU = 2
+    OSO = 3
+
+
+# region SRNE Inverter Class
+
+
 class SRNEInverter():
 
+    # region Private
     def __init__(self, deviceid: str, baudrate: int = 9600, slaveaddress: int = 1, debug: bool = False, serialtimeout: int = 1) -> None:
         instr = minimalmodbus.Instrument(deviceid, slaveaddress)
         instr.serial.baudrate = baudrate
@@ -37,7 +55,11 @@ class SRNEInverter():
             return value
         except IOError:
             return -10
+# endregion
 
+# region Getters
+
+    # Battery Voltage
     def get_battery_voltage(self) -> float:
         value = self._read_register(*INVERTER_COMMANDS.get('battery_voltage'))
         return float(value)
@@ -139,91 +161,100 @@ class SRNEInverter():
         value = self._read_register(*INVERTER_COMMANDS.get('inverter_power'))
         return int(value)
 
+    # Get a complete record of all the parameters
     def get_record(self):
         record = {
-            'battery_voltage': {
+            'batteryVoltage': {
                 'value': self.get_battery_voltage(),
                 'unit': Units.VOLTAGE.value
             },
-            'battery_current': {
+            'batteryCurrent': {
                 'value': self.get_battery_charge_current(),
                 'unit': Units.CURRRENT.value
             },
-            'battery_charge_power': {
+            'batteryChargePower': {
                 'value': self.get_battery_charge_power(),
                 'unit': Units.POWER.value
             },
-            'battery_soc': {
+            'batterySoc': {
                 'value': self.get_battery_soc(),
                 'unit': Units.PERCENTAGE.value
             },
-            'battery_max_charge_current': {
+            'batteryMaxChargeCurrent': {
                 'value': self.get_battery_max_charge_current(),
                 'unit': Units.CURRRENT.value
             },
-            'pv_voltage': {
+            'pvVoltage': {
                 'value': self.get_pv_input_voltage(),
                 'unit': Units.VOLTAGE.value
             },
-            'pv_current': {
+            'pvCurrent': {
                 'value': self.get_pv_input_current(),
                 'unit': Units.CURRRENT.value
             },
-            'pv_power': {
+            'pvPower': {
                 'value': self.get_pv_input_power(),
                 'unit': Units.POWER.value
             },
-            'pv_battery_charge_current': {
+            'pvBatteryChargeCurrent': {
                 'value': self.get_pv_battery_charge_current(),
                 'unit': Units.CURRRENT.value
             },
-            'grid_voltage': {
+            'gridVoltage': {
                 'value': self.get_grid_voltage(),
                 'unit': Units.VOLTAGE.value
             },
-            'grid_input_current': {
+            'gridInputCurrent': {
                 'value': self.get_grid_input_current(),
                 'unit': Units.CURRRENT.value
             },
-            'grid_battery_charge_current': {
+            'gridBatteryChargeCurrent': {
                 'value': self.get_grid_battery_charge_current(),
                 'unit': Units.CURRRENT.value
             },
-            'grid_frequency': {
+            'gridFrequency': {
                 'value': self.get_grid_frequency(),
                 'unit': Units.FREQUENCY.value
             },
-            'grid_battery_charge_max_current': {
+            'gridBatteryChargeMaxCurrent': {
                 'value': self.get_grid_battery_charge_max_current(),
                 'unit': Units.CURRRENT.value
             },
-            'inverter_voltage': {
+            'inverterVoltage': {
                 'value': self.get_inverter_output_voltage(),
                 'unit': Units.VOLTAGE.value
             },
-            'inverter_current': {
+            'inverterCurrent': {
                 'value': self.get_inverter_output_current(),
                 'unit': Units.CURRRENT.value
             },
-            'inverter_frequency': {
+            'inverterFrequency': {
                 'value': self.get_inverter_frequency(),
                 'unit': Units.FREQUENCY.value
             },
-            'inverter_power': {
+            'inverterPower': {
                 'value': self.get_inverter_output_power(),
                 'unit': Units.POWER.value
             },
-            'temp_dc': {
+            'tempDc': {
                 'value': 0,
                 'unit': Units.VOLTAGE.value
             },
-            'temp_ac': {
+            'tempAc': {
                 'value': 0,
                 'unit': Units.VOLTAGE.value
             },
-            'temp_tr': {
+            'tempTr': {
                 'value': 0,
                 'unit': Units.VOLTAGE.value
             }
         }
         return record
+
+# endregion
+
+# region Setters
+
+# endregion
+
+# endregion
