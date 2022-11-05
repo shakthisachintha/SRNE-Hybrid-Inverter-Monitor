@@ -1,5 +1,12 @@
 READ_FUNCTION_CODE = 3
 WRITE_FUNCTION_CODE = 6
+
+MAX_UTILITY_CHARGE_CURRENT = 80
+MIN_UTILITY_CHARGE_CURRENT = 0
+
+MAX_CHARGE_CURRENT = 80
+MIN_CHARGE_CURRENT = 0
+
 INVERTER_COMMANDS = {
     #region Reading Commands
     'battery_voltage': (0x0101, 1, READ_FUNCTION_CODE, False),
@@ -27,15 +34,12 @@ INVERTER_COMMANDS = {
     'temp_tr': (0x0223, 1, READ_FUNCTION_CODE, True),
     #endregion
 
-"""
-max charge current 0-80A 5x multiples
-max AC charger current 0-80A 5x multiples
-"""
     #region Writing Commands
-    'grid_battery_charge_max_current_write': (0xe205, 1, READ_FUNCTION_CODE, False),
+    'grid_battery_charge_max_current_write': (0xe205, 1, WRITE_FUNCTION_CODE, False),
     'battery_max_charge_current_write': (0xe20a, 1, WRITE_FUNCTION_CODE, False),
     'inverter_output_priority_write': (0xe204, 0, WRITE_FUNCTION_CODE, False),
     'inverter_charger_priority_write': (0xe20f, 0, WRITE_FUNCTION_CODE, False),
     #endregion
+    #register: int, value: [int, float], decimals: int = 0, functioncode: int = 6, signed: bool = False
 
 }

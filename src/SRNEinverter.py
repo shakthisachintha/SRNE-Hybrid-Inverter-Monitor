@@ -39,7 +39,8 @@ class SRNEInverter():
         instr.debug = debug
         self._instrument = instr
 
-    def _write_register(self, register: int, value: [int, float], decimals: int = 0, functioncode: int = 6, signed: bool = False) -> bool:
+    def _write_register(self, value: [int, float], register: int, decimals: int = 0, functioncode: int = 6, signed: bool = False) -> bool:
+        sleep(0.1)
         try:
             self._instrument.write_register(
                 register, value, decimals, functioncode, signed)
@@ -57,7 +58,7 @@ class SRNEInverter():
             return -10
 # endregion
 
-# region Getters
+    # region Getters
 
     # Battery Voltage
     def get_battery_voltage(self) -> float:
@@ -251,10 +252,32 @@ class SRNEInverter():
         }
         return record
 
+    # endregion
+
+    # region Setters
+
+    # Set inverter output priority 
+    def set_inverter_output_priority(self, priority: OutputPriority) -> bool:
+        params = (priority.value, *INVERTER_COMMANDS.get('inverter_output_priority_write'))
+        return self._write_register(*params)
+
+    # Set inverter charging priority
+    def set_inverter_charger_priority(self, priority: ChargerPriority) -> bool:
+        params = (priority.value, *INVERTER_COMMANDS.get('inverter_charger_priority_write'))
+        return self._write_register(*params)
+
+    # Set max charging current
+    def set_maxmimum_charging_current(self, current: int) ->bool:
+        params = (current, *INVERTER_COMMANDS.get('battery_max_charge_current_write'))
+        return self._write_register(*params)
+
+    # Set max utility charging current
+    def set_grid_maxmimum_charging_current(self, current: int) ->bool:
+        params = (current, *INVERTER_COMMANDS.get('grid_battery_charge_max_current_write'))
+        return self._write_register(*params)
+    # endregion
+
 # endregion
 
-# region Setters
-
-# endregion
-
-# endregion
+# x = (OutputPriority['UTI'].value, *INVERTER_COMMANDS.get('inverter_output_priority_write'))
+# print(x)
