@@ -43,13 +43,10 @@ async def message_stream(request: Request):
 
     def new_messages():
         # Add logic here to check for new messages
-        mutex.acquire()
         try:
             record = inverter.get_record()
-            mutex.release()
             return record
         except:
-            mutex.release()
             return {}
 
     async def event_generator():
