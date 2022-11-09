@@ -1,11 +1,18 @@
+"""
+SRNE All-in-one solar charger inverter
+Target models HF2430S80-H | HF2430U80-H
+"""
+
 READ_FUNCTION_CODE = 3
 WRITE_FUNCTION_CODE = 6
 
 MAX_UTILITY_CHARGE_CURRENT = 80
 MIN_UTILITY_CHARGE_CURRENT = 0
+MULTIPLIER_UTILITY_CHARGE_CURRENT = 5
 
 MAX_CHARGE_CURRENT = 80
 MIN_CHARGE_CURRENT = 0
+MULTIPLIER_CHARGE_CURRENT = 5
 
 INVERTER_COMMANDS = {
     #region Reading Commands
@@ -24,9 +31,9 @@ INVERTER_COMMANDS = {
     'grid_frequency':(0x0215, 2, READ_FUNCTION_CODE, False),
     'grid_battery_charge_max_current': (0xe205, 1, READ_FUNCTION_CODE, False),
     'inverter_voltage': (0x0216, 1, READ_FUNCTION_CODE, False),
-    'inverter_current': (0x0217, 1, READ_FUNCTION_CODE, False),
+    'inverter_current': (0x0219, 1, READ_FUNCTION_CODE, False),
     'inverter_frequency': (0x0218, 2, READ_FUNCTION_CODE, False),
-    'inverter_power': (0x021B, 0, READ_FUNCTION_CODE, False),
+    'inverter_power': (0x021b, 0, READ_FUNCTION_CODE, False),
     'inverter_output_priority': (0xe204, 0, READ_FUNCTION_CODE, False),
     'inverter_charger_priority': (0xe20f, 0, READ_FUNCTION_CODE, False), 
     'temp_dc': (0x0221, 1, READ_FUNCTION_CODE, True),

@@ -8,8 +8,8 @@ class Validator():
     def maximum(self, maxlimit=[int, float], message: str = ""):
         if not self._validated:
             return self
-        err = f"Value should be less than {maxlimit}." if message == "" else message
-        if (self._value < maxlimit):
+        err = f"Value should be less than or equal {maxlimit}." if message == "" else message
+        if (self._value <= maxlimit):
             return self
         self._validated = False
         self._error = err
@@ -19,8 +19,8 @@ class Validator():
     def minimum(self, minlimit=[int, float], message: str = ""):
         if not self._validated:
             return self
-        err = f"Value should be greater than {minlimit}." if message == "" else message
-        if (self._value > minlimit):
+        err = f"Value should be greater than or equal {minlimit}." if message == "" else message
+        if (self._value >= minlimit):
             return self
         self._validated = False
         self._error = err

@@ -2,6 +2,7 @@ from time import sleep
 import minimalmodbus
 from srnecommands import INVERTER_COMMANDS
 from enum import Enum
+from threading import Lock
 
 
 class Units(Enum):
@@ -30,32 +31,50 @@ class ChargerPriority(Enum):
 
 
 class SRNEInverter():
-
+    """
+    SRNE All-in-one solar charger inverter
+    Target models HF2430S80-H | HF2430U80-H
+    """
     # region Private
-    def __init__(self, deviceid: str, baudrate: int = 9600, slaveaddress: int = 1, debug: bool = False, serialtimeout: int = 1) -> None:
-        instr = minimalmodbus.Instrument(deviceid, slaveaddress)
-        instr.serial.baudrate = baudrate
-        instr.serial.timeout = serialtimeout
-        instr.debug = debug
-        self._instrument = instr
+
+    def __init__(self, deviceid: str, baudrate: int = 9600, slaveaddress: int = 1, debug: bool = False, serialtimeout: int = 1, mock:bool = True) -> None:
+        if not mock:
+            instr = minimalmodbus.Instrument(deviceid, slaveaddress)
+            instr.serial.baudrate = baudrate
+            instr.serial.timeout = serialtimeout
+            instr.debug = debug
+            self._instrument = instr
+        self._lock = Lock()
 
     def _write_register(self, value: [int, float], register: int, decimals: int = 0, functioncode: int = 6, signed: bool = False) -> bool:
-        sleep(0.1)
-        try:
-            self._instrument.write_register(
-                register, value, decimals, functioncode, signed)
-            return True
-        except IOError:
-            return False
+        with self._lock:
+            return self._mock_write_register()
+            sleep(0.1)
+            try:
+                self._instrument.write_register(
+                    register, value, decimals, functioncode, signed)
+                return True
+            except IOError:
+                return False
 
     def _read_register(self, register: int, decimals: int, functioncode: int = 3, signed: bool = False) -> [int, float]:
+        with self._lock:
+            return self._mock_read_register()
+            sleep(0.1)
+            try:
+                value = self._instrument.read_register(
+                    register, decimals, functioncode, signed)
+                return value
+            except IOError:
+                return -10
+    
+    def _mock_write_register(self) -> bool:
         sleep(0.1)
-        try:
-            value = self._instrument.read_register(
-                register, decimals, functioncode, signed)
-            return value
-        except IOError:
-            return -10
+        return True
+
+    def _mock_read_register(self) -> [int, float]:
+        sleep(0.1)
+        return 1
 # endregion
 
     # region Getters
@@ -87,7 +106,7 @@ class SRNEInverter():
         return int(value)
 
     # Battery Max Charge Current
-    def get_battery_max_charge_current(self) -> float:
+    def get_battery_charge_max_current(self) -> float:
         value = self._read_register(
             *INVERTER_COMMANDS.get('battery_max_charge_current'))
         return float(value)
@@ -162,6 +181,16 @@ class SRNEInverter():
         value = self._read_register(*INVERTER_COMMANDS.get('inverter_power'))
         return int(value)
 
+    # Inverter output priority
+    def get_inverter_output_priority(self)->OutputPriority:
+        value = self._read_register(*INVERTER_COMMANDS.get('inverter_output_priority'))
+        return OutputPriority(int(value))
+    
+    # Inverter charger priority
+    def get_inverter_charger_priority(self)->ChargerPriority:
+        value = self._read_register(*INVERTER_COMMANDS.get('inverter_charger_priority'))
+        return ChargerPriority(int(value))
+    
     # Get a complete record of all the parameters
     def get_record(self):
         record = {
@@ -182,7 +211,7 @@ class SRNEInverter():
                 'unit': Units.PERCENTAGE.value
             },
             'batteryMaxChargeCurrent': {
-                'value': self.get_battery_max_charge_current(),
+                'value': self.get_battery_charge_max_current(),
                 'unit': Units.CURRRENT.value
             },
             'pvVoltage': {
@@ -237,6 +266,8 @@ class SRNEInverter():
                 'value': self.get_inverter_output_power(),
                 'unit': Units.POWER.value
             },
+            'inverterOutputPriority': self.get_inverter_output_priority().value,
+            'inverterChargerPriority': self.get_inverter_charger_priority().value,
             'tempDc': {
                 'value': 0,
                 'unit': Units.VOLTAGE.value
@@ -256,28 +287,29 @@ class SRNEInverter():
 
     # region Setters
 
-    # Set inverter output priority 
+    # Set inverter output priority
     def set_inverter_output_priority(self, priority: OutputPriority) -> bool:
-        params = (priority.value, *INVERTER_COMMANDS.get('inverter_output_priority_write'))
+        params = (priority.value, *
+                  INVERTER_COMMANDS.get('inverter_output_priority_write'))
         return self._write_register(*params)
 
     # Set inverter charging priority
     def set_inverter_charger_priority(self, priority: ChargerPriority) -> bool:
-        params = (priority.value, *INVERTER_COMMANDS.get('inverter_charger_priority_write'))
+        params = (priority.value, *
+                  INVERTER_COMMANDS.get('inverter_charger_priority_write'))
         return self._write_register(*params)
 
     # Set max charging current
-    def set_maxmimum_charging_current(self, current: int) ->bool:
-        params = (current, *INVERTER_COMMANDS.get('battery_max_charge_current_write'))
+    def set_battery_charge_max_current(self, current: int) -> bool:
+        params = (
+            current, *INVERTER_COMMANDS.get('battery_max_charge_current_write'))
         return self._write_register(*params)
 
     # Set max utility charging current
-    def set_grid_maxmimum_charging_current(self, current: int) ->bool:
-        params = (current, *INVERTER_COMMANDS.get('grid_battery_charge_max_current_write'))
+    def set_grid_battery_charger_maxmimum_current(self, current: int) -> bool:
+        params = (
+            current, *INVERTER_COMMANDS.get('grid_battery_charge_max_current_write'))
         return self._write_register(*params)
     # endregion
 
 # endregion
-
-# x = (OutputPriority['UTI'].value, *INVERTER_COMMANDS.get('inverter_output_priority_write'))
-# print(x)
