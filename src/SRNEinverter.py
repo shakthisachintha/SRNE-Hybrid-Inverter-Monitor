@@ -37,18 +37,20 @@ class SRNEInverter():
     """
     # region Private
 
-    def __init__(self, deviceid: str, baudrate: int = 9600, slaveaddress: int = 1, debug: bool = False, serialtimeout: int = 1, mock:bool = True) -> None:
+    def __init__(self, deviceid: str, baudrate: int = 9600, slaveaddress: int = 1, debug: bool = False, serialtimeout: int = 1, mock: bool = True) -> None:
         if not mock:
             instr = minimalmodbus.Instrument(deviceid, slaveaddress)
             instr.serial.baudrate = baudrate
             instr.serial.timeout = serialtimeout
             instr.debug = debug
             self._instrument = instr
+        self.mock = mock
         self._lock = Lock()
 
     def _write_register(self, value: [int, float], register: int, decimals: int = 0, functioncode: int = 6, signed: bool = False) -> bool:
         with self._lock:
-            return self._mock_write_register()
+            if self.mock:
+                return self._mock_write_register()
             sleep(0.1)
             try:
                 self._instrument.write_register(
@@ -59,7 +61,8 @@ class SRNEInverter():
 
     def _read_register(self, register: int, decimals: int, functioncode: int = 3, signed: bool = False) -> [int, float]:
         with self._lock:
-            return self._mock_read_register()
+            if self.mock:
+                return self._mock_read_register()
             sleep(0.1)
             try:
                 value = self._instrument.read_register(
@@ -67,7 +70,7 @@ class SRNEInverter():
                 return value
             except IOError:
                 return -10
-    
+
     def _mock_write_register(self) -> bool:
         sleep(0.1)
         return True
@@ -182,104 +185,44 @@ class SRNEInverter():
         return int(value)
 
     # Inverter output priority
-    def get_inverter_output_priority(self)->OutputPriority:
-        value = self._read_register(*INVERTER_COMMANDS.get('inverter_output_priority'))
+    def get_inverter_output_priority(self) -> OutputPriority:
+        value = self._read_register(
+            *INVERTER_COMMANDS.get('inverter_output_priority'))
         return OutputPriority(int(value))
-    
+
     # Inverter charger priority
-    def get_inverter_charger_priority(self)->ChargerPriority:
-        value = self._read_register(*INVERTER_COMMANDS.get('inverter_charger_priority'))
+    def get_inverter_charger_priority(self) -> ChargerPriority:
+        value = self._read_register(
+            *INVERTER_COMMANDS.get('inverter_charger_priority'))
         return ChargerPriority(int(value))
-    
+
     # Get a complete record of all the parameters
     def get_record(self):
         record = {
-            'batteryVoltage': {
-                'value': self.get_battery_voltage(),
-                'unit': Units.VOLTAGE.value
+            'battery': {
+                'voltage': self.get_battery_voltage(),
+                'current': self.get_battery_charge_current(),
+                'chargePower': self.get_battery_charge_power(),
+                'soc':  self.get_battery_soc(),
             },
-            'batteryCurrent': {
-                'value': self.get_battery_charge_current(),
-                'unit': Units.CURRRENT.value
+            'pv': {
+                'voltage': self.get_pv_input_voltage(),
+                'current': self.get_pv_input_current(),
+                'power': self.get_pv_input_power(),
+                'batteryChargeCurrent': self.get_pv_battery_charge_current()
             },
-            'batteryChargePower': {
-                'value': self.get_battery_charge_power(),
-                'unit': Units.POWER.value
+            'grid': {
+                'voltage': self.get_grid_voltage(),
+                'inputCurrent': self.get_grid_input_current(),
+                'batteryChargeCurrent':  self.get_grid_battery_charge_current(),
+                'frequency': self.get_grid_frequency(),
             },
-            'batterySoc': {
-                'value': self.get_battery_soc(),
-                'unit': Units.PERCENTAGE.value
+            'inverter': {
+                'voltage': self.get_inverter_output_voltage(),
+                'current': self.get_inverter_output_current(),
+                'frequency': self.get_inverter_frequency(),
+                'power': self.get_inverter_output_power(),
             },
-            'batteryMaxChargeCurrent': {
-                'value': self.get_battery_charge_max_current(),
-                'unit': Units.CURRRENT.value
-            },
-            'pvVoltage': {
-                'value': self.get_pv_input_voltage(),
-                'unit': Units.VOLTAGE.value
-            },
-            'pvCurrent': {
-                'value': self.get_pv_input_current(),
-                'unit': Units.CURRRENT.value
-            },
-            'pvPower': {
-                'value': self.get_pv_input_power(),
-                'unit': Units.POWER.value
-            },
-            'pvBatteryChargeCurrent': {
-                'value': self.get_pv_battery_charge_current(),
-                'unit': Units.CURRRENT.value
-            },
-            'gridVoltage': {
-                'value': self.get_grid_voltage(),
-                'unit': Units.VOLTAGE.value
-            },
-            'gridInputCurrent': {
-                'value': self.get_grid_input_current(),
-                'unit': Units.CURRRENT.value
-            },
-            'gridBatteryChargeCurrent': {
-                'value': self.get_grid_battery_charge_current(),
-                'unit': Units.CURRRENT.value
-            },
-            'gridFrequency': {
-                'value': self.get_grid_frequency(),
-                'unit': Units.FREQUENCY.value
-            },
-            'gridBatteryChargeMaxCurrent': {
-                'value': self.get_grid_battery_charge_max_current(),
-                'unit': Units.CURRRENT.value
-            },
-            'inverterVoltage': {
-                'value': self.get_inverter_output_voltage(),
-                'unit': Units.VOLTAGE.value
-            },
-            'inverterCurrent': {
-                'value': self.get_inverter_output_current(),
-                'unit': Units.CURRRENT.value
-            },
-            'inverterFrequency': {
-                'value': self.get_inverter_frequency(),
-                'unit': Units.FREQUENCY.value
-            },
-            'inverterPower': {
-                'value': self.get_inverter_output_power(),
-                'unit': Units.POWER.value
-            },
-            'inverterOutputPriority': self.get_inverter_output_priority().value,
-            'inverterChargerPriority': self.get_inverter_charger_priority().value,
-            'tempDc': {
-                'value': 0,
-                'unit': Units.VOLTAGE.value
-            },
-            'tempAc': {
-                'value': 0,
-                'unit': Units.VOLTAGE.value
-            },
-            'tempTr': {
-                'value': 0,
-                'unit': Units.VOLTAGE.value
-            }
         }
         return record
 

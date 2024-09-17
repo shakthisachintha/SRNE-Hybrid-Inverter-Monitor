@@ -1,0 +1,88 @@
+{
+    "batteryVoltage": {
+        "value": 26.1,
+        "unit": 3
+    },
+    "batteryCurrent": {
+        "value": -10.0,
+        "unit": 2
+    },
+    "batteryChargePower": {
+        "value": 0,
+        "unit": 1
+    },
+    "batterySoc": {
+        "value": 58,
+        "unit": 4
+    },
+    "batteryMaxChargeCurrent": {
+        "value": 40.0,
+        "unit": 2
+    },
+    "pvVoltage": {
+        "value": 0.0,
+        "unit": 3
+    },
+    "pvCurrent": {
+        "value": 0.0,
+        "unit": 2
+    },
+    "pvPower": {
+        "value": 0,
+        "unit": 1
+    },
+    "pvBatteryChargeCurrent": {
+        "value": 0.0,
+        "unit": 2
+    },
+    "gridVoltage": {
+        "value": 228.4,
+        "unit": 3
+    },
+    "gridInputCurrent": {
+        "value": 0.0,
+        "unit": 2
+    },
+    "gridBatteryChargeCurrent": {
+        "value": 0.0,
+        "unit": 2
+    },
+    "gridFrequency": {
+        "value": 49.99,
+        "unit": 6
+    },
+    "gridBatteryChargeMaxCurrent": {
+        "value": 10.0,
+        "unit": 2
+    },
+    "inverterVoltage": {
+        "value": 229.9,
+        "unit": 3
+    },
+    "inverterCurrent": {
+        "value": 1.1,
+        "unit": 2
+    },
+    "inverterFrequency": {
+        "value": 49.99,
+        "unit": 6
+    },
+    "inverterPower": {
+        "value": 253,
+        "unit": 1
+    },
+    "inverterOutputPriority": 2,
+    "inverterChargerPriority": 0,
+    "tempDc": {
+        "value": 0,
+        "unit": 3
+    },
+    "tempAc": {
+        "value": 0,
+        "unit": 3
+    },
+    "tempTr": {
+        "value": 0,
+        "unit": 3
+    }
+}

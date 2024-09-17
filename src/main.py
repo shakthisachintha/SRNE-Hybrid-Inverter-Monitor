@@ -8,7 +8,7 @@ from validator import Validator
 import json
 
 device_id = '/dev/tty.usbserial-143240'
-inverter = SRNEInverter(device_id)
+inverter = SRNEInverter(device_id, mock=False)
 
 # record = inverter.get_record()
 # val = inverter.get_inverter_output_priority()
@@ -40,9 +40,7 @@ async def root():
 
 @app.get('/stream')
 async def message_stream(request: Request):
-
     def new_messages():
-        # Add logic here to check for new messages
         try:
             record = inverter.get_record()
             return record
@@ -51,18 +49,14 @@ async def message_stream(request: Request):
 
     async def event_generator():
         while True:
-            # If client closes connection, stop sending events
             if await request.is_disconnected():
                 break
-
-            # Checks for new messages and return them to client if any
             yield {
                 "event": "message",
                 "id": "message_id",
                 "retry": RETRY_TIMEOUT,
                 "data": json.dumps(new_messages())
             }
-
             await asyncio.sleep(STREAM_DELAY)
 
     return EventSourceResponse(event_generator())
@@ -77,7 +71,7 @@ async def set_output_priority(request: Request):
         if (inverter.set_inverter_output_priority(OutputPriority(value))):
             new_value = inverter.get_inverter_output_priority()
             return {'success': True,
-                    'value': new_value
+                    'value': value
                     }
         else:
             return {
@@ -100,7 +94,7 @@ async def set_charger_priority(request: Request):
         if (inverter.set_inverter_charger_priority(ChargerPriority(value))):
             new_value = inverter.get_inverter_charger_priority()
             return {'success': True,
-                    'value': new_value
+                    'value': value
                     }
         else:
             return {
@@ -126,7 +120,7 @@ async def set_grid_charge_current(request: Request):
         if (inverter.set_grid_battery_charger_maxmimum_current(value)):
             new_value = inverter.get_grid_battery_charge_max_current()
             return {'success': True,
-                    'value': new_value
+                    'value': value
                     }
         else:
             return {
@@ -152,7 +146,7 @@ async def set_max_charge_current(request: Request):
         if (inverter.set_battery_charge_max_current(value)):
             new_value = inverter.get_battery_charge_max_current()
             return {'success': True,
-                    'value': new_value
+                    'value': value
                     }
         else:
             return {
@@ -163,6 +157,23 @@ async def set_max_charge_current(request: Request):
         return {
             'success': False,
             'message': validation.get('message')
+        }
+
+
+@app.get("/get/all-configs")
+async def get_all_config(request: Request):
+    try:
+        return {
+        "success": True,
+        "chargerPriority": inverter.get_inverter_charger_priority(),
+        "outputPriority": inverter.get_inverter_output_priority(),
+        "maxBatteryChargeCurrent": inverter.get_battery_charge_max_current(),
+        "maxGridChargeCurrent": inverter.get_grid_battery_charge_max_current()
+    }
+    except:
+        return {
+            "success": False,
+            "message": "Some unknown error occured when reading data."
         }
 
 
