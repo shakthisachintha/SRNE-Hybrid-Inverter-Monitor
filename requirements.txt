@@ -1,0 +1,4 @@
+minimalmodbus
+fastapi
+sse-starlette
+uvicorn

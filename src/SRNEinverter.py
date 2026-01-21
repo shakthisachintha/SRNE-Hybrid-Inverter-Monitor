@@ -1,6 +1,6 @@
 from time import sleep
 import minimalmodbus
-from srnecommands import INVERTER_COMMANDS
+from srnecommands import INVERTER_COMMANDS, BATTERY_VOLTAGE
 from enum import Enum
 from threading import Lock
 
@@ -25,7 +25,16 @@ class ChargerPriority(Enum):
     CUB = 1
     SNU = 2
     OSO = 3
+    
+class BatteryType(Enum):
+    USER = 0
+    SLD = 1
+    FLD = 2
+    GEL = 3
+    LFP = 4
+    NCA = 5
 
+BATTERY_SETUP_MULTIPLIER = int(BATTERY_VOLTAGE/12)
 
 # region SRNE Inverter Class
 
@@ -113,6 +122,30 @@ class SRNEInverter():
         value = self._read_register(
             *INVERTER_COMMANDS.get('battery_max_charge_current'))
         return float(value)
+
+    # Battery Type    
+    def get_battery_type(self) -> str:
+        value = self._read_register(
+            *INVERTER_COMMANDS.get('battery_type'))
+        return BatteryType(int(value)).name
+
+    # Battery Boost Charge Voltage
+    def get_battery_boost_charge_voltage(self) -> float:
+        value = self._read_register(
+            *INVERTER_COMMANDS.get('battery_boost_charge_voltage'))
+        return float(value * BATTERY_SETUP_MULTIPLIER)
+    
+    # Battery Boost Charge Time
+    def get_battery_boost_charge_time(self) -> int:
+        value = self._read_register(
+            *INVERTER_COMMANDS.get('battery_boost_charge_time'))
+        return int(value)
+    
+    # Battery Float Charge Voltage
+    def get_battery_float_charge_voltage(self) -> float:
+        value = self._read_register(
+            *INVERTER_COMMANDS.get('battery_float_charge_voltage'))
+        return float(value * BATTERY_SETUP_MULTIPLIER)
 
     # PV Input Voltage
     def get_pv_input_voltage(self) -> float:
@@ -204,6 +237,10 @@ class SRNEInverter():
                 'current': self.get_battery_charge_current(),
                 'chargePower': self.get_battery_charge_power(),
                 'soc':  self.get_battery_soc(),
+                'type': self.get_battery_type(),
+                'boostChargeVoltage': self.get_battery_boost_charge_voltage(),
+                'boostChargeTime': self.get_battery_boost_charge_time(),
+                'floatChargeVoltage': self.get_battery_float_charge_voltage(),
             },
             'pv': {
                 'voltage': self.get_pv_input_voltage(),
@@ -223,6 +260,12 @@ class SRNEInverter():
                 'frequency': self.get_inverter_frequency(),
                 'power': self.get_inverter_output_power(),
             },
+            'settings': {
+                'chargerPriority': self.get_inverter_charger_priority().name,
+                'outputPriority': self.get_inverter_output_priority().name,
+                'maxBatteryChargeCurrent': self.get_battery_charge_max_current(),
+                'maxGridChargeCurrent': self.get_grid_battery_charge_max_current()
+            }
         }
         return record
 

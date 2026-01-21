@@ -14,6 +14,8 @@ MAX_CHARGE_CURRENT = 80
 MIN_CHARGE_CURRENT = 0
 MULTIPLIER_CHARGE_CURRENT = 5
 
+BATTERY_VOLTAGE = 24
+
 INVERTER_COMMANDS = {
     #region Reading Commands
     'battery_voltage': (0x0101, 1, READ_FUNCTION_CODE, False),
@@ -21,6 +23,11 @@ INVERTER_COMMANDS = {
     'battery_charge_power':(0x010e, 0, READ_FUNCTION_CODE, False),
     'battery_soc': (0x0100, 0, READ_FUNCTION_CODE, False),
     'battery_max_charge_current': (0xe20a, 1, READ_FUNCTION_CODE, False),
+    'battery_type': (0xe004, 0, READ_FUNCTION_CODE, False),
+    'battery_boost_charge_voltage': (0xE008, 1, READ_FUNCTION_CODE, False),
+    'battery_boost_charge_time': (0xe012, 0, READ_FUNCTION_CODE, False),
+    'battery_float_charge_voltage': (0xe009, 1, READ_FUNCTION_CODE, False),
+    'battery_over_discharge_voltage': (0xe00d, 1, READ_FUNCTION_CODE, False),
     'pv_voltage': (0x0107, 1, READ_FUNCTION_CODE, False),
     'pv_current': (0x0108, 1, READ_FUNCTION_CODE, False),
     'pv_power': (0x0109, 0, READ_FUNCTION_CODE, False),
@@ -47,6 +54,7 @@ INVERTER_COMMANDS = {
     'inverter_output_priority_write': (0xe204, 0, WRITE_FUNCTION_CODE, False),
     'inverter_charger_priority_write': (0xe20f, 0, WRITE_FUNCTION_CODE, False),
     #endregion
+
     #register: int, value: [int, float], decimals: int = 0, functioncode: int = 6, signed: bool = False
 
 }
