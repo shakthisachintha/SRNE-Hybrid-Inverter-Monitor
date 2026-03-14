@@ -8,5 +8,9 @@
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "dependencies": {
+    "modbus-serial": "^8.0.23",
+    "mqtt": "^5.15.0"
   }
 }
