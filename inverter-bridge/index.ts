@@ -1,5 +1,8 @@
 import mqtt from "mqtt";
 import ModbusRTU from "modbus-serial";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 // --- CONFIGURATION ---
 const SERIAL_PORT = "/dev/ttyUSB0";

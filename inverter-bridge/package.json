@@ -14,6 +14,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "dotenv": "^17.3.1",
     "modbus-serial": "^8.0.23",
     "mqtt": "^5.15.0"
   }
