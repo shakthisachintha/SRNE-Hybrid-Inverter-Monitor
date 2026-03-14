@@ -81,3 +81,19 @@ mqttClient.on("message", async (topic, message) => {
     );
   }
 });
+
+async function main() {
+  console.log("Starting Inverter Bridge...");
+  const data = await modbusClient.readHoldingRegisters(0x0100, 10); // Adjust range as needed
+  const payload = {
+    soc: data.data[0] ?? 0,
+    voltage: (data.data[1] ?? 0) / 10,
+    timestamp: Date.now(),
+  };
+  console.log("Initial Data:", payload);
+}
+
+main().catch((e) => {
+  const errorMessage = e instanceof Error ? e.message : String(e);
+  console.error("Initialization Error:", errorMessage);
+});
