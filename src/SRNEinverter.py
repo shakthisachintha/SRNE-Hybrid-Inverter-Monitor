@@ -7,7 +7,7 @@ from threading import Lock
 
 class Units(Enum):
     POWER = 1
-    CURRRENT = 2
+    CURRENT = 2
     VOLTAGE = 3
     PERCENTAGE = 4
     TEMPERATURE = 5
