@@ -42,23 +42,6 @@ mqttClient.on("connect", () => {
   mqttClient.subscribe("inverter/cmd/#");
 });
 
-// --- 1. THE DATA PUMP (Inverter -> Cloud) ---
-setInterval(async () => {
-  try {
-    const data = await modbusClient.readHoldingRegisters(0x0100, 10); // Adjust range as needed
-    const payload = {
-      soc: data.data[0] ?? 0,
-      voltage: (data.data[1] ?? 0) / 10,
-      timestamp: Date.now(),
-    };
-
-    mqttClient.publish("inverter/telemetry", JSON.stringify(payload));
-  } catch (e) {
-    const errorMessage = e instanceof Error ? e.message : String(e);
-    console.error("Modbus Read Error:", errorMessage);
-  }
-}, 5000);
-
 // --- 2. THE COMMAND LISTENER (Cloud -> Inverter) ---
 mqttClient.on("message", async (topic, message) => {
   const cmd = JSON.parse(message.toString());
@@ -91,6 +74,24 @@ async function main() {
     timestamp: Date.now(),
   };
   console.log("Initial Data:", payload);
+
+  // --- 1. THE DATA PUMP (Inverter -> Cloud) ---
+  console.log("Starting Data Pump...");
+  setInterval(async () => {
+    try {
+      const data = await modbusClient.readHoldingRegisters(0x0100, 10); // Adjust range as needed
+      const payload = {
+        soc: data.data[0] ?? 0,
+        voltage: (data.data[1] ?? 0) / 10,
+        timestamp: Date.now(),
+      };
+      console.log("Telemetry Data on Timer:", payload);
+      mqttClient.publish("inverter/telemetry", JSON.stringify(payload));
+    } catch (e) {
+      const errorMessage = e instanceof Error ? e.message : String(e);
+      console.error("Modbus Read Error:", errorMessage);
+    }
+  }, 5000);
 }
 
 main().catch((e) => {
