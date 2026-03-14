@@ -1,19 +1,41 @@
 # SRNE Hybrid Inverter Monitor
 
-![Python](https://img.shields.io/badge/python-3.7+-blue.svg)
+![Bun](https://img.shields.io/badge/bun-typescript-black.svg)
+![Python](https://img.shields.io/badge/python-legacy-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
-A Python-based monitoring and control system for SRNE All-in-one hybrid solar inverters using Modbus RTU communication protocol. This application enables real-time data collection, remote monitoring, and configuration of solar inverter systems through a REST API with Server-Sent Events (SSE) streaming.
+A monitoring and control project for SRNE All-in-one hybrid solar inverters using Modbus RTU communication. The current direction is a Bun/TypeScript control layer that runs close to the inverter, publishes telemetry to MQTT, and consumes control commands from MQTT. A separate middle-tier server will expose the external API for applications and dashboards.
 
 ## 🎯 Features
 
-- **Real-time Monitoring**: Stream live inverter data via Server-Sent Events (SSE)
+- **Bun/TypeScript Control Layer**: The active implementation direction is a Bun-based runtime for device-side control
 - **Modbus RTU Communication**: Direct serial communication with SRNE inverters
-- **REST API**: Control inverter settings remotely via HTTP endpoints
+- **MQTT Telemetry Publishing**: Inverter data is intended to be published to an MQTT broker
+- **MQTT Command Consumption**: Control commands are intended to be received from the MQTT broker
+- **Separated API Layer**: Public API responsibilities move to a middle-tier server, not the inverter-side process
 - **Multi-parameter Tracking**: Monitor battery, solar, grid, and inverter metrics
-- **Remote Configuration**: Adjust charging priorities, current limits, and output settings
-- **Mock Mode**: Test and develop without physical hardware
+- **Remote Configuration Path**: Commands can be relayed through the broker to the inverter control layer
+- **Legacy Python Reference**: The previous Python implementation remains in the repository under `python/`
 - **Thread-safe Operations**: Concurrent-safe Modbus communication
+
+## 🧭 Architecture Direction
+
+The repository is moving toward a split architecture:
+
+1. **Device-side control layer** in Bun/TypeScript
+2. **MQTT broker** as the messaging backbone
+3. **Middle-tier server** exposing HTTP/Web API for clients
+4. **Apps/dashboards/services** interacting with the middle-tier server rather than the inverter process directly
+
+### Planned Flow
+
+- The Bun/TypeScript process connects to the inverter over Modbus RTU
+- It reads inverter state and publishes telemetry to MQTT topics
+- It subscribes to command topics and applies control changes to the inverter
+- A separate server consumes telemetry and exposes application-facing APIs
+- Client applications send commands to that server, which then relays them through MQTT
+
+This means the inverter-side process will **not expose its own server or public API**.
 
 ## 🔌 Supported Hardware
 
@@ -48,30 +70,53 @@ A Python-based monitoring and control system for SRNE All-in-one hybrid solar in
 ## 🚀 Installation
 
 ### Prerequisites
-- Python 3.7 or higher
+- Bun
+- TypeScript
+- Python 3.7 or higher for the legacy implementation under `python/`
 - USB to RS485/RS232 adapter for serial communication
 - SRNE compatible inverter with Modbus RTU support
 
-### Install Dependencies
+### Current Repository Layout
+
+```text
+SRNE-Hybrid-Inverter-Monitor/
+├── bun/                        # Active Bun/TypeScript control-layer work
+├── python/                     # Legacy Python implementation moved here
+│   ├── src/
+│   ├── requirements.txt
+│   └── .venv/
+├── Resources/                  # Modbus protocol documentation (PDFs)
+└── README.md
+```
+
+### Bun/TypeScript Control Layer
+
+The Bun project lives under `bun/` and is the main direction for ongoing development.
 
 ```bash
+cd bun
+bun install
+```
+
+### Legacy Python Implementation
+
+The old Python codebase has been moved under `python/` and is retained for reference, migration support, and parity checking while the Bun/TypeScript layer is being built.
+
+```bash
+cd python
 pip install -r requirements.txt
 ```
 
-Or install manually:
-```bash
-pip install minimalmodbus fastapi sse-starlette uvicorn
-```
-
-### Dependencies
-- **minimalmodbus**: Modbus RTU communication library
-- **fastapi**: Modern async web framework
-- **sse-starlette**: Server-Sent Events support
-- **uvicorn**: ASGI server
-
 ## 🎮 Usage
 
-### Basic Usage
+### Current Status
+
+- The **Bun/TypeScript control layer** is the active path forward
+- The inverter-side process is expected to communicate through **MQTT**, not HTTP
+- The externally accessible API will live in a **separate middle-tier server**
+- The **Python implementation** remains available in `python/` as the older approach
+
+### Legacy Python Usage
 
 ```python
 from SRNEinverter import SRNEInverter
@@ -80,106 +125,56 @@ from SRNEinverter import SRNEInverter
 device_id = '/dev/tty.usbserial-143240'  # macOS
 # device_id = '/dev/ttyUSB0'  # Linux
 
-inverter = SRNEInverter(device_id, mock=False)
+inverter = SRNEInverter(device_id)
 
 # Get all inverter data
 data = inverter.get_record()
 print(data)
 ```
 
-### Running the REST API Server
+### Legacy Python Server
+
+The Python FastAPI server exists only in the legacy implementation under `python/`. It is no longer the target architecture for the project.
 
 ```bash
-cd src/
+cd python/src
 python main.py
 ```
 
-Server runs on `http://localhost:5004`
-
-### Mock Mode (Testing without Hardware)
-
-```python
-inverter = SRNEInverter(device_id, mock=True)
-```
-
-## 📡 API Endpoints
-
-### GET Endpoints
-
-| Endpoint | Description | Response |
-|----------|-------------|----------|
-| `GET /` | Health check | `{"message": "Hello World"}` |
-| `GET /stream` | SSE real-time data stream | JSON stream (1s updates) |
-| `GET /get/all-configs` | Get all inverter settings | Configuration object |
-
-### POST Endpoints
-
-| Endpoint | Parameters | Description |
-|----------|------------|-------------|
-| `POST /set/output-priority` | `value`: 0-2 | Set inverter output priority<br>0=SOL, 1=UTI, 2=SBU |
-| `POST /set/charger-priority` | `value`: 0-3 | Set charger priority<br>0=CSO, 1=CUB, 2=SNU, 3=OSO |
-| `POST /set/grid-charge-current` | `value`: 0-80A (multiples of 5) | Set grid charging current limit |
-| `POST /set/max-charge-current` | `value`: 0-80A (multiples of 5) | Set max battery charging current |
-
-### Example API Calls
-
-```bash
-# Stream real-time data
-curl http://localhost:5004/stream
-
-# Set output priority to Solar-Battery-Utility (SBU)
-curl -X POST http://localhost:5004/set/output-priority \
-  -H "Content-Type: application/json" \
-  -d '{"value": 2}'
-
-# Set max charging current to 40A
-curl -X POST http://localhost:5004/set/max-charge-current \
-  -H "Content-Type: application/json" \
-  -d '{"value": 40}'
-
-# Get all configurations
-curl http://localhost:5004/get/all-configs
-```
+Server runs on `http://localhost:5004` if you still use the old Python stack.
 
 ## 🔧 Configuration
 
 ### Device Path Configuration
-Update the `device_id` in `src/main.py`:
+Update the device path in the relevant runtime:
 - **macOS**: `/dev/tty.usbserial-*`
 - **Linux**: `/dev/ttyUSB0` or `/tmp/ttyUSB0`
 
 ### Battery Voltage Configuration
-Modify `BATTERY_VOLTAGE` in `src/srnecommands.py` for multi-battery systems:
+Modify `BATTERY_VOLTAGE` in `python/src/srnecommands.py` for the legacy Python implementation:
 ```python
 BATTERY_VOLTAGE = 24  # 24V system (2 x 12V batteries)
 # BATTERY_VOLTAGE = 48  # 48V system (4 x 12V batteries)
 ```
 
-## 📁 Project Structure
-
-```
-SRNE-Hybrid-Inverter-Monitor/
-├── src/
-│   ├── main.py                 # FastAPI server & entry point
-│   ├── SRNEinverter.py         # Main inverter class with mock mode
-│   ├── srnecommands.py         # Modbus register definitions
-│   ├── validator.py            # Input validation utilities
-│   └── inverter-monitor.py     # Legacy implementation
-├── Resources/                  # Modbus protocol documentation (PDFs)
-├── requirements.txt            # Python dependencies
-└── README.md
-```
-
 ## 🛠️ Development
 
-### Adding New Parameters
+### Current Development Focus
 
-1. Add register definition to `INVERTER_COMMANDS` in `srnecommands.py`:
+- Build the Bun/TypeScript inverter control layer in `bun/`
+- Publish inverter telemetry to MQTT
+- Consume control commands from MQTT topics
+- Keep the middle-tier API server separate from the inverter-side process
+- Use the Python code in `python/` as a reference implementation during migration
+
+### Legacy Python: Adding New Parameters
+
+1. Add register definition to `INVERTER_COMMANDS` in `python/src/srnecommands.py`:
 ```python
 'new_parameter': (0x0123, 1, 3, False)  # (address, decimals, function_code, signed)
 ```
 
-2. Create getter method in `SRNEinverter.py`:
+2. Create getter method in `python/src/SRNEinverter.py`:
 ```python
 def get_new_parameter(self) -> float:
     value = self._read_register(*INVERTER_COMMANDS.get('new_parameter'))
@@ -190,12 +185,12 @@ def get_new_parameter(self) -> float:
 
 ## 🔍 Keywords
 
-Solar inverter monitoring, SRNE inverter, hybrid inverter, Modbus RTU, RS485, solar power monitoring, battery monitoring, PV system, Python Modbus, FastAPI monitoring, real-time solar data, inverter API, solar charge controller, off-grid solar, grid-tied inverter, IoT solar monitoring, remote inverter control, HF2430S80-H, HF2430U80-H
+Solar inverter monitoring, SRNE inverter, hybrid inverter, Modbus RTU, RS485, MQTT inverter telemetry, MQTT command handling, Bun TypeScript, solar power monitoring, battery monitoring, PV system, Python legacy implementation, real-time solar data, inverter control layer, solar charge controller, off-grid solar, grid-tied inverter, IoT solar monitoring, HF2430S80-H, HF2430U80-H
 
 ## 📚 Resources
 
 - Official SRNE Modbus documentation available in `Resources/` directory
-- Register definitions and protocol specifications included
+- Legacy register definitions and protocol handling remain in `python/`
 
 ## 🤝 Contributing
 
