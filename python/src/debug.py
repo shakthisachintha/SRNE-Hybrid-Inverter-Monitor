@@ -4,7 +4,7 @@ from SRNEinverter import SRNEInverter
 
 # device_id = '/dev/tty.usbserial-143240'
 device_id = '/dev/ttyUSB0'
-inverter = SRNEInverter(device_id, mock=False)
+inverter = SRNEInverter(device_id)
 
 record = inverter.get_record()
 # val = inverter.get_inverter_output_priority()

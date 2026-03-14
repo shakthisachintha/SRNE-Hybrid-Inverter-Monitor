@@ -1,6 +1,7 @@
 from enum import Enum
 from threading import Lock
 from time import sleep
+from typing import Union
 
 import minimalmodbus
 
@@ -37,6 +38,7 @@ class BatteryType(Enum):
     NCA = 5
 
 BATTERY_SETUP_MULTIPLIER = int(BATTERY_VOLTAGE/12)
+Number = Union[int, float]
 
 # region SRNE Inverter Class
 
@@ -56,7 +58,7 @@ class SRNEInverter():
         self._instrument = instr
         self._lock = Lock()
 
-    def _write_register(self, value: [int, float], register: int, decimals: int = 0, functioncode: int = 6, signed: bool = False) -> bool:
+    def _write_register(self, value: Number, register: int, decimals: int = 0, functioncode: int = 6, signed: bool = False) -> bool:
         with self._lock:
             sleep(0.1)
             try:
@@ -66,7 +68,7 @@ class SRNEInverter():
             except IOError:
                 return False
 
-    def _read_register(self, register: int, decimals: int, functioncode: int = 3, signed: bool = False) -> [int, float]:
+    def _read_register(self, register: int, decimals: int, functioncode: int = 3, signed: bool = False) -> Number:
         with self._lock:
             sleep(0.1)
             try:
