@@ -1,8 +1,10 @@
-from time import sleep
-import minimalmodbus
-from srnecommands import INVERTER_COMMANDS, BATTERY_VOLTAGE
 from enum import Enum
 from threading import Lock
+from time import sleep
+
+import minimalmodbus
+
+from srnecommands import BATTERY_VOLTAGE, INVERTER_COMMANDS
 
 
 class Units(Enum):
@@ -46,20 +48,16 @@ class SRNEInverter():
     """
     # region Private
 
-    def __init__(self, deviceid: str, baudrate: int = 9600, slaveaddress: int = 1, debug: bool = False, serialtimeout: int = 1, mock: bool = True) -> None:
-        if not mock:
-            instr = minimalmodbus.Instrument(deviceid, slaveaddress)
-            instr.serial.baudrate = baudrate
-            instr.serial.timeout = serialtimeout
-            instr.debug = debug
-            self._instrument = instr
-        self.mock = mock
+    def __init__(self, deviceid: str, baudrate: int = 9600, slaveaddress: int = 1, debug: bool = False, serialtimeout: int = 1) -> None:
+        instr = minimalmodbus.Instrument(deviceid, slaveaddress)
+        instr.serial.baudrate = baudrate
+        instr.serial.timeout = serialtimeout
+        instr.debug = debug
+        self._instrument = instr
         self._lock = Lock()
 
     def _write_register(self, value: [int, float], register: int, decimals: int = 0, functioncode: int = 6, signed: bool = False) -> bool:
         with self._lock:
-            if self.mock:
-                return self._mock_write_register()
             sleep(0.1)
             try:
                 self._instrument.write_register(
@@ -70,8 +68,6 @@ class SRNEInverter():
 
     def _read_register(self, register: int, decimals: int, functioncode: int = 3, signed: bool = False) -> [int, float]:
         with self._lock:
-            if self.mock:
-                return self._mock_read_register()
             sleep(0.1)
             try:
                 value = self._instrument.read_register(
@@ -79,14 +75,6 @@ class SRNEInverter():
                 return value
             except IOError:
                 return -10
-
-    def _mock_write_register(self) -> bool:
-        sleep(0.1)
-        return True
-
-    def _mock_read_register(self) -> [int, float]:
-        sleep(0.1)
-        return 1
 # endregion
 
     # region Getters
@@ -292,7 +280,7 @@ class SRNEInverter():
         return self._write_register(*params)
 
     # Set max utility charging current
-    def set_grid_battery_charger_maxmimum_current(self, current: int) -> bool:
+    def set_grid_battery_charger_maximum_current(self, current: int) -> bool:
         params = (
             current, *INVERTER_COMMANDS.get('grid_battery_charge_max_current_write'))
         return self._write_register(*params)

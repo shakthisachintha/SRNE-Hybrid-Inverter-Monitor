@@ -1,7 +1,6 @@
 import json
 
-import srnecommands
-from SRNEinverter import ChargerPriority, OutputPriority, SRNEInverter
+from SRNEinverter import SRNEInverter
 
 # device_id = '/dev/tty.usbserial-143240'
 device_id = '/dev/ttyUSB0'
