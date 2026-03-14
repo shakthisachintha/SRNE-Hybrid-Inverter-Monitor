@@ -16,6 +16,7 @@ const MQTT_OPTIONS = {
   password: process.env.MQTT_PASSWORD || "your-password",
   protocol: "mqtt",
 };
+console.log("MQTT Options:", MQTT_OPTIONS);
 // --- INITIALIZE HARDWARE ---
 const modbusClient = new ModbusRTU();
 await modbusClient.connectRTUBuffered(SERIAL_PORT, { baudRate: 9600 });
@@ -25,7 +26,7 @@ modbusClient.setID(INVERTER_ID);
 const mqttClient = mqtt.connect({
   host: MQTT_OPTIONS.host,
   port: MQTT_OPTIONS.port,
-  protocol: "mqtt",
+  protocol: "mqtts",
   username: MQTT_OPTIONS.username,
   password: MQTT_OPTIONS.password,
   will: {
