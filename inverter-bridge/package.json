@@ -4,11 +4,11 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "ts-node index.ts"
+    "dev": "tsx index.ts"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
-    "ts-node": "^10.9.2"
+    "tsx": "^4.19.3"
   },
   "peerDependencies": {
     "typescript": "^5"
