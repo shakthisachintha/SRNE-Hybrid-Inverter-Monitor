@@ -1,12 +1,12 @@
 import mqtt from "mqtt";
-import ModbusRTU from "modbus-serial";
 import dotenv from "dotenv";
+import { SRNEInverter } from "./src/Inverters/SRNE/SrneInverter";
+import { WRITE_COMMANDS } from "./src/Inverters/SRNE/types";
 
 dotenv.config();
 
 // --- CONFIGURATION ---
-const SERIAL_PORT = "/dev/ttyUSB0";
-const INVERTER_ID = 1;
+const SERIAL_PORT = process.env.SERIAL_PORT || "/dev/ttyUSB0";
 
 // --- MQTT Configs ---
 const MQTT_OPTIONS = {
@@ -14,13 +14,11 @@ const MQTT_OPTIONS = {
   port: Number(process.env.MQTT_PORT ?? 1883),
   username: process.env.MQTT_USERNAME || "your-username",
   password: process.env.MQTT_PASSWORD || "your-password",
-  protocol: "mqtt",
 };
-console.log("MQTT Options:", MQTT_OPTIONS);
+
 // --- INITIALIZE HARDWARE ---
-const modbusClient = new ModbusRTU();
-await modbusClient.connectRTUBuffered(SERIAL_PORT, { baudRate: 9600 });
-modbusClient.setID(INVERTER_ID);
+const inverter = new SRNEInverter(SERIAL_PORT);
+await inverter.connect(SERIAL_PORT);
 
 // --- INITIALIZE MQTT ---
 const mqttClient = mqtt.connect({
@@ -39,22 +37,26 @@ const mqttClient = mqtt.connect({
 mqttClient.on("connect", () => {
   console.log("Connected to Cloud Broker");
   mqttClient.publish("inverter/status", "online", { retain: true });
-  // Subscribe to the command topic for setting changes
   mqttClient.subscribe("inverter/cmd/#");
 });
 
-// --- 2. THE COMMAND LISTENER (Cloud -> Inverter) ---
+// --- COMMAND LISTENER (Cloud -> Inverter) ---
 mqttClient.on("message", async (topic, message) => {
   const cmd = JSON.parse(message.toString());
   console.log(`Received Command: ${topic}`, cmd);
 
   try {
     if (topic === "inverter/cmd/priority") {
-      // Example: Setting Output Priority (Register 0xE204)
-      await modbusClient.writeRegister(0xe204, cmd.value);
+      await inverter.setSetting(WRITE_COMMANDS.outputPriority, cmd.value);
       mqttClient.publish(
         "inverter/cmd/ack",
         JSON.stringify({ status: "success", cmd: "priority" }),
+      );
+    } else if (topic === "inverter/cmd/charger_priority") {
+      await inverter.setSetting(WRITE_COMMANDS.chargerPriority, cmd.value);
+      mqttClient.publish(
+        "inverter/cmd/ack",
+        JSON.stringify({ status: "success", cmd: "charger_priority" }),
       );
     }
   } catch (e) {
@@ -68,26 +70,17 @@ mqttClient.on("message", async (topic, message) => {
 
 async function main() {
   console.log("Starting Inverter Bridge...");
-  const data = await modbusClient.readHoldingRegisters(0x0100, 10); // Adjust range as needed
-  const payload = {
-    soc: data.data[0] ?? 0,
-    voltage: (data.data[1] ?? 0) / 10,
-    timestamp: Date.now(),
-  };
-  console.log("Initial Data:", payload);
 
-  // --- 1. THE DATA PUMP (Inverter -> Cloud) ---
+  const record = await inverter.getFullRecord();
+  console.log("Initial Data:", record);
+
+  // --- DATA PUMP (Inverter -> Cloud) ---
   console.log("Starting Data Pump...");
   setInterval(async () => {
     try {
-      const data = await modbusClient.readHoldingRegisters(0x0100, 10); // Adjust range as needed
-      const payload = {
-        soc: data.data[0] ?? 0,
-        voltage: (data.data[1] ?? 0) / 10,
-        timestamp: Date.now(),
-      };
-      console.log("Telemetry Data on Timer:", payload);
-      mqttClient.publish("inverter/telemetry", JSON.stringify(payload));
+      const record = await inverter.getFullRecord();
+      console.log("Telemetry Data on Timer:", record);
+      mqttClient.publish("inverter/telemetry", JSON.stringify(record));
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : String(e);
       console.error("Modbus Read Error:", errorMessage);
