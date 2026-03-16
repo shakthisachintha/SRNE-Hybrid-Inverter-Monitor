@@ -17,7 +17,7 @@ const MQTT_OPTIONS = {
 };
 
 // --- INITIALIZE HARDWARE ---
-const inverter = new SrneInverter(SERIAL_PORT);
+const inverter = new SrneInverter();
 await inverter.connect(SERIAL_PORT);
 
 // --- INITIALIZE MQTT ---

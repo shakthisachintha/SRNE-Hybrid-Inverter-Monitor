@@ -7,13 +7,12 @@ export class SrneInverter {
   private readonly batterySetupMultiplier: number;
 
   constructor(
-    port: string,
     private readonly baudRate: number = 9600,
     private readonly slaveId: number = 1,
     systemVoltage: number = 24,
     private readonly interReadDelayMs: number = 100,
   ) {
-    this.client = new ModbusRTU(port);
+    this.client = new ModbusRTU();
     this.baudRate = baudRate;
     this.slaveId = slaveId;
     /** Multiplier for registers calibrated to a 12V base system (e.g. 2 for 24V, 4 for 48V) */
@@ -54,7 +53,9 @@ export class SrneInverter {
 
     // Handle Decimals
     const scaled = value / Math.pow(10, command.decimals);
-    const result = command.systemScaled ? scaled * this.batterySetupMultiplier : scaled;
+    const result = command.systemScaled
+      ? scaled * this.batterySetupMultiplier
+      : scaled;
     return command.negate ? -result : result;
   }
 
