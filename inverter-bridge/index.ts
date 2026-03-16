@@ -47,13 +47,13 @@ mqttClient.on("message", async (topic, message) => {
 
   try {
     if (topic === "inverter/cmd/priority") {
-      await inverter.setSetting(WRITE_COMMANDS.outputPriority, cmd.value);
+      // await inverter.setSetting(WRITE_COMMANDS.outputPriority, cmd.value);
       mqttClient.publish(
         "inverter/cmd/ack",
         JSON.stringify({ status: "success", cmd: "priority" }),
       );
     } else if (topic === "inverter/cmd/charger_priority") {
-      await inverter.setSetting(WRITE_COMMANDS.chargerPriority, cmd.value);
+      // await inverter.setSetting(WRITE_COMMANDS.chargerPriority, cmd.value);
       mqttClient.publish(
         "inverter/cmd/ack",
         JSON.stringify({ status: "success", cmd: "charger_priority" }),

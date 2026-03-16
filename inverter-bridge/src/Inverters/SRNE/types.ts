@@ -20,7 +20,7 @@ export enum ChargerPriority {
   OSO = 3,
 }
 
-export enum CommandKey {
+export enum ReadCommandKey {
   BatteryVoltage,
   BatteryCurrent,
   BatteryChargePower,
@@ -50,6 +50,13 @@ export enum CommandKey {
   TempTr,
 }
 
+export enum WriteCommandKey {
+  GridMaxChargeCurrent,
+  BatteryMaxChargeCurrent,
+  OutputPriority,
+  ChargerPriority,
+}
+
 export interface InverterCommand {
   address: number;
   decimals: number;
@@ -64,39 +71,39 @@ export interface InverterCommand {
   enumMap?: Record<number, string>;
 }
 
-export const READ_COMMANDS: Record<CommandKey, InverterCommand> = {
-  [CommandKey.BatteryVoltage]: {
+export const READ_COMMANDS: Record<ReadCommandKey, InverterCommand> = {
+  [ReadCommandKey.BatteryVoltage]: {
     address: 0x0101,
     decimals: 1,
     signed: false,
     label: "Battery Voltage",
   },
-  [CommandKey.BatteryCurrent]: {
+  [ReadCommandKey.BatteryCurrent]: {
     address: 0x0102,
     decimals: 1,
     signed: true,
     negate: true,
     label: "Battery Current",
   },
-  [CommandKey.BatteryChargePower]: {
+  [ReadCommandKey.BatteryChargePower]: {
     address: 0x010e,
     decimals: 0,
     signed: false,
     label: "Battery Charge Power",
   },
-  [CommandKey.BatterySoc]: {
+  [ReadCommandKey.BatterySoc]: {
     address: 0x0100,
     decimals: 0,
     signed: false,
     label: "Battery SOC",
   },
-  [CommandKey.BatteryMaxChargeCurrent]: {
+  [ReadCommandKey.BatteryMaxChargeCurrent]: {
     address: 0xe20a,
     decimals: 1,
     signed: false,
     label: "Battery Max Charge Current",
   },
-  [CommandKey.BatteryType]: {
+  [ReadCommandKey.BatteryType]: {
     address: 0xe004,
     decimals: 0,
     signed: false,
@@ -110,106 +117,106 @@ export const READ_COMMANDS: Record<CommandKey, InverterCommand> = {
       [BatteryType.NCA]: "NCA",
     },
   },
-  [CommandKey.BatteryBoostChargeVoltage]: {
+  [ReadCommandKey.BatteryBoostChargeVoltage]: {
     address: 0xe008,
     decimals: 1,
     signed: false,
     systemScaled: true,
     label: "Battery Boost Charge Voltage",
   },
-  [CommandKey.BatteryBoostChargeTime]: {
+  [ReadCommandKey.BatteryBoostChargeTime]: {
     address: 0xe012,
     decimals: 0,
     signed: false,
     label: "Battery Boost Charge Time",
   },
-  [CommandKey.BatteryFloatChargeVoltage]: {
+  [ReadCommandKey.BatteryFloatChargeVoltage]: {
     address: 0xe009,
     decimals: 1,
     signed: false,
     systemScaled: true,
     label: "Battery Float Charge Voltage",
   },
-  [CommandKey.BatteryOverDischargeVoltage]: {
+  [ReadCommandKey.BatteryOverDischargeVoltage]: {
     address: 0xe00d,
     decimals: 1,
     signed: false,
     systemScaled: true,
     label: "Battery Over Discharge Voltage",
   },
-  [CommandKey.PvVoltage]: {
+  [ReadCommandKey.PvVoltage]: {
     address: 0x0107,
     decimals: 1,
     signed: false,
     label: "PV Voltage",
   },
-  [CommandKey.PvCurrent]: {
+  [ReadCommandKey.PvCurrent]: {
     address: 0x0108,
     decimals: 1,
     signed: false,
     label: "PV Current",
   },
-  [CommandKey.PvPower]: {
+  [ReadCommandKey.PvPower]: {
     address: 0x0109,
     decimals: 0,
     signed: false,
     label: "PV Power",
   },
-  [CommandKey.GridVoltage]: {
+  [ReadCommandKey.GridVoltage]: {
     address: 0x0213,
     decimals: 1,
     signed: false,
     label: "Grid Voltage",
   },
-  [CommandKey.GridInputCurrent]: {
+  [ReadCommandKey.GridInputCurrent]: {
     address: 0x0214,
     decimals: 1,
     signed: false,
     label: "Grid Input Current",
   },
-  [CommandKey.GridBatteryChargeCurrent]: {
+  [ReadCommandKey.GridBatteryChargeCurrent]: {
     address: 0x021e,
     decimals: 1,
     signed: false,
     label: "Grid Battery Charge Current",
   },
-  [CommandKey.GridFrequency]: {
+  [ReadCommandKey.GridFrequency]: {
     address: 0x0215,
     decimals: 2,
     signed: false,
     label: "Grid Frequency",
   },
-  [CommandKey.GridBatteryChargeMaxCurrent]: {
+  [ReadCommandKey.GridBatteryChargeMaxCurrent]: {
     address: 0xe205,
     decimals: 1,
     signed: false,
     label: "Grid Battery Charge Max Current",
   },
-  [CommandKey.InverterVoltage]: {
+  [ReadCommandKey.InverterVoltage]: {
     address: 0x0216,
     decimals: 1,
     signed: false,
     label: "Inverter Voltage",
   },
-  [CommandKey.InverterCurrent]: {
+  [ReadCommandKey.InverterCurrent]: {
     address: 0x0219,
     decimals: 1,
     signed: false,
     label: "Inverter Current",
   },
-  [CommandKey.InverterFrequency]: {
+  [ReadCommandKey.InverterFrequency]: {
     address: 0x0218,
     decimals: 2,
     signed: false,
     label: "Inverter Frequency",
   },
-  [CommandKey.InverterPower]: {
+  [ReadCommandKey.InverterPower]: {
     address: 0x021b,
     decimals: 0,
     signed: false,
     label: "Inverter Power",
   },
-  [CommandKey.InverterOutputPriority]: {
+  [ReadCommandKey.InverterOutputPriority]: {
     address: 0xe204,
     decimals: 0,
     signed: false,
@@ -220,7 +227,7 @@ export const READ_COMMANDS: Record<CommandKey, InverterCommand> = {
       [OutputPriority.SBU]: "SBU",
     },
   },
-  [CommandKey.InverterChargerPriority]: {
+  [ReadCommandKey.InverterChargerPriority]: {
     address: 0xe20f,
     decimals: 0,
     signed: false,
@@ -232,19 +239,19 @@ export const READ_COMMANDS: Record<CommandKey, InverterCommand> = {
       [ChargerPriority.OSO]: "OSO",
     },
   },
-  [CommandKey.TempDc]: {
+  [ReadCommandKey.TempDc]: {
     address: 0x0221,
     decimals: 1,
     signed: true,
     label: "DC Temperature",
   },
-  [CommandKey.TempAc]: {
+  [ReadCommandKey.TempAc]: {
     address: 0x0222,
     decimals: 1,
     signed: true,
     label: "AC Temperature",
   },
-  [CommandKey.TempTr]: {
+  [ReadCommandKey.TempTr]: {
     address: 0x0223,
     decimals: 1,
     signed: true,
@@ -252,9 +259,29 @@ export const READ_COMMANDS: Record<CommandKey, InverterCommand> = {
   },
 };
 
-export const WRITE_COMMANDS = {
-  gridMaxCurrent: 0xe205,
-  batteryMaxCurrent: 0xe20a,
-  outputPriority: 0xe204,
-  chargerPriority: 0xe20f,
+export const WRITE_COMMANDS: Record<WriteCommandKey, InverterCommand> = {
+  [WriteCommandKey.GridMaxChargeCurrent]: {
+    address: 0xe205,
+    decimals: 1,
+    signed: false,
+    label: "Grid Battery Charge Max Current",
+  },
+  [WriteCommandKey.BatteryMaxChargeCurrent]: {
+    address: 0xe20a,
+    decimals: 1,
+    signed: false,
+    label: "Battery Max Charge Current",
+  },
+  [WriteCommandKey.OutputPriority]: {
+    address: 0xe204,
+    decimals: 0,
+    signed: false,
+    label: "Output Priority",
+  },
+  [WriteCommandKey.ChargerPriority]: {
+    address: 0xe20f,
+    decimals: 0,
+    signed: false,
+    label: "Charger Priority",
+  },
 };

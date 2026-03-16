@@ -1,5 +1,5 @@
 import ModbusRTU from "modbus-serial";
-import { CommandKey, InverterCommand, READ_COMMANDS } from "./types";
+import { ReadCommandKey, InverterCommand, READ_COMMANDS } from "./types";
 
 export class SrneInverter {
   private client: ModbusRTU;
@@ -77,65 +77,77 @@ export class SrneInverter {
   async getFullRecord() {
     return {
       battery: {
-        voltage: await this.getValue(READ_COMMANDS[CommandKey.BatteryVoltage]),
-        current: await this.getValue(READ_COMMANDS[CommandKey.BatteryCurrent]),
+        voltage: await this.getValue(
+          READ_COMMANDS[ReadCommandKey.BatteryVoltage],
+        ),
+        current: await this.getValue(
+          READ_COMMANDS[ReadCommandKey.BatteryCurrent],
+        ),
         chargePower: await this.getValue(
-          READ_COMMANDS[CommandKey.BatteryChargePower],
+          READ_COMMANDS[ReadCommandKey.BatteryChargePower],
         ),
-        soc: await this.getValue(READ_COMMANDS[CommandKey.BatterySoc]),
+        soc: await this.getValue(READ_COMMANDS[ReadCommandKey.BatterySoc]),
         maxChargeCurrent: await this.getValue(
-          READ_COMMANDS[CommandKey.BatteryMaxChargeCurrent],
+          READ_COMMANDS[ReadCommandKey.BatteryMaxChargeCurrent],
         ),
-        type: await this.getEnumValue(READ_COMMANDS[CommandKey.BatteryType]),
+        type: await this.getEnumValue(
+          READ_COMMANDS[ReadCommandKey.BatteryType],
+        ),
         boostChargeVoltage: await this.getValue(
-          READ_COMMANDS[CommandKey.BatteryBoostChargeVoltage],
+          READ_COMMANDS[ReadCommandKey.BatteryBoostChargeVoltage],
         ),
         boostChargeTime: await this.getValue(
-          READ_COMMANDS[CommandKey.BatteryBoostChargeTime],
+          READ_COMMANDS[ReadCommandKey.BatteryBoostChargeTime],
         ),
         floatChargeVoltage: await this.getValue(
-          READ_COMMANDS[CommandKey.BatteryFloatChargeVoltage],
+          READ_COMMANDS[ReadCommandKey.BatteryFloatChargeVoltage],
         ),
         overDischargeVoltage: await this.getValue(
-          READ_COMMANDS[CommandKey.BatteryOverDischargeVoltage],
+          READ_COMMANDS[ReadCommandKey.BatteryOverDischargeVoltage],
         ),
       },
       pv: {
-        voltage: await this.getValue(READ_COMMANDS[CommandKey.PvVoltage]),
-        current: await this.getValue(READ_COMMANDS[CommandKey.PvCurrent]),
-        power: await this.getValue(READ_COMMANDS[CommandKey.PvPower]),
+        voltage: await this.getValue(READ_COMMANDS[ReadCommandKey.PvVoltage]),
+        current: await this.getValue(READ_COMMANDS[ReadCommandKey.PvCurrent]),
+        power: await this.getValue(READ_COMMANDS[ReadCommandKey.PvPower]),
       },
       grid: {
-        voltage: await this.getValue(READ_COMMANDS[CommandKey.GridVoltage]),
+        voltage: await this.getValue(READ_COMMANDS[ReadCommandKey.GridVoltage]),
         inputCurrent: await this.getValue(
-          READ_COMMANDS[CommandKey.GridInputCurrent],
+          READ_COMMANDS[ReadCommandKey.GridInputCurrent],
         ),
         batteryChargeCurrent: await this.getValue(
-          READ_COMMANDS[CommandKey.GridBatteryChargeCurrent],
+          READ_COMMANDS[ReadCommandKey.GridBatteryChargeCurrent],
         ),
-        frequency: await this.getValue(READ_COMMANDS[CommandKey.GridFrequency]),
+        frequency: await this.getValue(
+          READ_COMMANDS[ReadCommandKey.GridFrequency],
+        ),
         batteryChargeMaxCurrent: await this.getValue(
-          READ_COMMANDS[CommandKey.GridBatteryChargeMaxCurrent],
+          READ_COMMANDS[ReadCommandKey.GridBatteryChargeMaxCurrent],
         ),
       },
       inverter: {
-        voltage: await this.getValue(READ_COMMANDS[CommandKey.InverterVoltage]),
-        current: await this.getValue(READ_COMMANDS[CommandKey.InverterCurrent]),
-        frequency: await this.getValue(
-          READ_COMMANDS[CommandKey.InverterFrequency],
+        voltage: await this.getValue(
+          READ_COMMANDS[ReadCommandKey.InverterVoltage],
         ),
-        power: await this.getValue(READ_COMMANDS[CommandKey.InverterPower]),
+        current: await this.getValue(
+          READ_COMMANDS[ReadCommandKey.InverterCurrent],
+        ),
+        frequency: await this.getValue(
+          READ_COMMANDS[ReadCommandKey.InverterFrequency],
+        ),
+        power: await this.getValue(READ_COMMANDS[ReadCommandKey.InverterPower]),
         outputPriority: await this.getEnumValue(
-          READ_COMMANDS[CommandKey.InverterOutputPriority],
+          READ_COMMANDS[ReadCommandKey.InverterOutputPriority],
         ),
         chargerPriority: await this.getEnumValue(
-          READ_COMMANDS[CommandKey.InverterChargerPriority],
+          READ_COMMANDS[ReadCommandKey.InverterChargerPriority],
         ),
       },
       temperature: {
-        dc: await this.getValue(READ_COMMANDS[CommandKey.TempDc]),
-        ac: await this.getValue(READ_COMMANDS[CommandKey.TempAc]),
-        transformer: await this.getValue(READ_COMMANDS[CommandKey.TempTr]),
+        dc: await this.getValue(READ_COMMANDS[ReadCommandKey.TempDc]),
+        ac: await this.getValue(READ_COMMANDS[ReadCommandKey.TempAc]),
+        transformer: await this.getValue(READ_COMMANDS[ReadCommandKey.TempTr]),
       },
       timestamp: new Date().toISOString(),
     };
@@ -144,9 +156,12 @@ export class SrneInverter {
   /**
    * Writes a value to the inverter
    */
-  async setSetting(address: number, value: number) {
+  async setSetting(setting: InverterCommand, value: number) {
     // Most settings on SRNE don't use decimals for writing simple priorities
     // But for currents (e.g. 40.0A), you usually multiply by 10
-    await this.client.writeRegister(address, value);
+    await this.client.writeRegister(
+      setting.address,
+      value * Math.pow(10, setting.decimals),
+    );
   }
 }
