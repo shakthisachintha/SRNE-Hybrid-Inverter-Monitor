@@ -34,7 +34,6 @@ export enum CommandKey {
   PvVoltage,
   PvCurrent,
   PvPower,
-  PvBatteryChargeCurrent,
   GridVoltage,
   GridInputCurrent,
   GridBatteryChargeCurrent,
@@ -56,6 +55,9 @@ export interface InverterCommand {
   decimals: number;
   signed: boolean;
   label: string;
+  /** Register value is calibrated for a 12V base system;
+   *  multiply by (systemVoltage / 12) to get the real value */
+  systemScaled?: boolean;
 }
 
 export const READ_COMMANDS: Record<CommandKey, InverterCommand> = {
@@ -99,6 +101,7 @@ export const READ_COMMANDS: Record<CommandKey, InverterCommand> = {
     address: 0xe008,
     decimals: 1,
     signed: false,
+    systemScaled: true,
     label: "Battery Boost Charge Voltage",
   },
   [CommandKey.BatteryBoostChargeTime]: {
@@ -111,12 +114,14 @@ export const READ_COMMANDS: Record<CommandKey, InverterCommand> = {
     address: 0xe009,
     decimals: 1,
     signed: false,
+    systemScaled: true,
     label: "Battery Float Charge Voltage",
   },
   [CommandKey.BatteryOverDischargeVoltage]: {
     address: 0xe00d,
     decimals: 1,
     signed: false,
+    systemScaled: true,
     label: "Battery Over Discharge Voltage",
   },
   [CommandKey.PvVoltage]: {
@@ -136,12 +141,6 @@ export const READ_COMMANDS: Record<CommandKey, InverterCommand> = {
     decimals: 0,
     signed: false,
     label: "PV Power",
-  },
-  [CommandKey.PvBatteryChargeCurrent]: {
-    address: 0x0224,
-    decimals: 1,
-    signed: false,
-    label: "PV Battery Charge Current",
   },
   [CommandKey.GridVoltage]: {
     address: 0x0213,

@@ -152,12 +152,6 @@ class SRNEInverter():
         value = self._read_register(*INVERTER_COMMANDS.get('pv_power'))
         return int(value)
 
-    # PV Battery Charge Current
-    def get_pv_battery_charge_current(self) -> float:
-        value = self._read_register(
-            *INVERTER_COMMANDS.get('pv_battery_charge_current'))
-        return float(value)
-
     # Grid Voltage
     def get_grid_voltage(self) -> float:
         value = self._read_register(*INVERTER_COMMANDS.get('grid_voltage'))
@@ -236,7 +230,6 @@ class SRNEInverter():
                 'voltage': self.get_pv_input_voltage(),
                 'current': self.get_pv_input_current(),
                 'power': self.get_pv_input_power(),
-                'batteryChargeCurrent': self.get_pv_battery_charge_current()
             },
             'grid': {
                 'voltage': self.get_grid_voltage(),

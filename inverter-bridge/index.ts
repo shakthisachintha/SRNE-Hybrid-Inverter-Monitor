@@ -1,6 +1,6 @@
 import mqtt from "mqtt";
 import dotenv from "dotenv";
-import { SRNEInverter } from "./src/Inverters/SRNE/SrneInverter";
+import { SrneInverter } from "./src/Inverters/SRNE/SrneInverter";
 import { WRITE_COMMANDS } from "./src/Inverters/SRNE/types";
 
 dotenv.config();
@@ -17,7 +17,7 @@ const MQTT_OPTIONS = {
 };
 
 // --- INITIALIZE HARDWARE ---
-const inverter = new SRNEInverter(SERIAL_PORT);
+const inverter = new SrneInverter(SERIAL_PORT);
 await inverter.connect(SERIAL_PORT);
 
 // --- INITIALIZE MQTT ---

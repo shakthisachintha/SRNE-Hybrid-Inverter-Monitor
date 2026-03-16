@@ -31,7 +31,6 @@ INVERTER_COMMANDS = {
     'pv_voltage': (0x0107, 1, READ_FUNCTION_CODE, False),
     'pv_current': (0x0108, 1, READ_FUNCTION_CODE, False),
     'pv_power': (0x0109, 0, READ_FUNCTION_CODE, False),
-    'pv_battery_charge_current': (0x0224, 1, READ_FUNCTION_CODE, False),
     'grid_voltage': (0x0213, 1, READ_FUNCTION_CODE, False),  
     'grid_input_current': (0x0214, 1, READ_FUNCTION_CODE, False),
     'grid_battery_charge_current': (0x021E, 1, READ_FUNCTION_CODE, False),
