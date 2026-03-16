@@ -31,6 +31,18 @@ export class SrneInverter {
   }
 
   /**
+   * Reads a register and returns its human-readable enum label.
+   * Throws if the command has no enumMap defined.
+   */
+  async getEnumValue(command: InverterCommand): Promise<string> {
+    if (!command.enumMap) {
+      throw new Error(`Command "${command.label}" has no enumMap defined.`);
+    }
+    const raw = await this.getValue(command);
+    return command.enumMap[raw] ?? `UNKNOWN(${raw})`;
+  }
+
+  /**
    * Reads a specific register and applies decimal/sign logic
    */
   async getValue(command: InverterCommand): Promise<number> {
@@ -74,7 +86,7 @@ export class SrneInverter {
         maxChargeCurrent: await this.getValue(
           READ_COMMANDS[CommandKey.BatteryMaxChargeCurrent],
         ),
-        type: await this.getValue(READ_COMMANDS[CommandKey.BatteryType]),
+        type: await this.getEnumValue(READ_COMMANDS[CommandKey.BatteryType]),
         boostChargeVoltage: await this.getValue(
           READ_COMMANDS[CommandKey.BatteryBoostChargeVoltage],
         ),
@@ -113,10 +125,10 @@ export class SrneInverter {
           READ_COMMANDS[CommandKey.InverterFrequency],
         ),
         power: await this.getValue(READ_COMMANDS[CommandKey.InverterPower]),
-        outputPriority: await this.getValue(
+        outputPriority: await this.getEnumValue(
           READ_COMMANDS[CommandKey.InverterOutputPriority],
         ),
-        chargerPriority: await this.getValue(
+        chargerPriority: await this.getEnumValue(
           READ_COMMANDS[CommandKey.InverterChargerPriority],
         ),
       },

@@ -60,6 +60,8 @@ export interface InverterCommand {
   systemScaled?: boolean;
   /** Negate the final value (positive = charging, negative = discharging) */
   negate?: boolean;
+  /** Maps raw integer values to human-readable labels */
+  enumMap?: Record<number, string>;
 }
 
 export const READ_COMMANDS: Record<CommandKey, InverterCommand> = {
@@ -99,6 +101,14 @@ export const READ_COMMANDS: Record<CommandKey, InverterCommand> = {
     decimals: 0,
     signed: false,
     label: "Battery Type",
+    enumMap: {
+      [BatteryType.USER]: "USER",
+      [BatteryType.SLD]: "SLD",
+      [BatteryType.FLD]: "FLD",
+      [BatteryType.GEL]: "GEL",
+      [BatteryType.LFP]: "LFP",
+      [BatteryType.NCA]: "NCA",
+    },
   },
   [CommandKey.BatteryBoostChargeVoltage]: {
     address: 0xe008,
@@ -204,12 +214,23 @@ export const READ_COMMANDS: Record<CommandKey, InverterCommand> = {
     decimals: 0,
     signed: false,
     label: "Output Priority",
+    enumMap: {
+      [OutputPriority.SOL]: "SOL",
+      [OutputPriority.UTI]: "UTI",
+      [OutputPriority.SBU]: "SBU",
+    },
   },
   [CommandKey.InverterChargerPriority]: {
     address: 0xe20f,
     decimals: 0,
     signed: false,
     label: "Charger Priority",
+    enumMap: {
+      [ChargerPriority.CSO]: "CSO",
+      [ChargerPriority.CUB]: "CUB",
+      [ChargerPriority.SNU]: "SNU",
+      [ChargerPriority.OSO]: "OSO",
+    },
   },
   [CommandKey.TempDc]: {
     address: 0x0221,
