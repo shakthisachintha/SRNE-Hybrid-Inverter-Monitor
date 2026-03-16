@@ -58,6 +58,8 @@ export interface InverterCommand {
   /** Register value is calibrated for a 12V base system;
    *  multiply by (systemVoltage / 12) to get the real value */
   systemScaled?: boolean;
+  /** Negate the final value (positive = charging, negative = discharging) */
+  negate?: boolean;
 }
 
 export const READ_COMMANDS: Record<CommandKey, InverterCommand> = {
@@ -71,6 +73,7 @@ export const READ_COMMANDS: Record<CommandKey, InverterCommand> = {
     address: 0x0102,
     decimals: 1,
     signed: true,
+    negate: true,
     label: "Battery Current",
   },
   [CommandKey.BatteryChargePower]: {

@@ -54,7 +54,8 @@ export class SrneInverter {
 
     // Handle Decimals
     const scaled = value / Math.pow(10, command.decimals);
-    return command.systemScaled ? scaled * this.batterySetupMultiplier : scaled;
+    const result = command.systemScaled ? scaled * this.batterySetupMultiplier : scaled;
+    return command.negate ? -result : result;
   }
 
   /**
