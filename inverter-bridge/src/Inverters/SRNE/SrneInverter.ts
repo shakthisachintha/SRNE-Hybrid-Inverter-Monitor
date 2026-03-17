@@ -109,7 +109,12 @@ export class SrneInverter {
       pv: {
         voltage: await this.getValue(READ_COMMANDS[ReadCommandKey.PvVoltage]),
         current: await this.getValue(READ_COMMANDS[ReadCommandKey.PvCurrent]),
-        power: await this.getValue(READ_COMMANDS[ReadCommandKey.PvPower]),
+        chargePower: await this.getValue(
+          READ_COMMANDS[ReadCommandKey.PvChargePower],
+        ),
+        totalPower: await this.getValue(
+          READ_COMMANDS[ReadCommandKey.PvTotalPower],
+        ),
       },
       grid: {
         voltage: await this.getValue(READ_COMMANDS[ReadCommandKey.GridVoltage]),
@@ -149,8 +154,20 @@ export class SrneInverter {
         ac: await this.getValue(READ_COMMANDS[ReadCommandKey.TempAc]),
         transformer: await this.getValue(READ_COMMANDS[ReadCommandKey.TempTr]),
       },
+      faults: await this.getFaultCodes(),
       timestamp: new Date().toISOString(),
     };
+  }
+
+  /**
+   * Reads the 4 fault code slots at 0x0204–0x0207.
+   * Returns only the active (non-zero) codes as an array.
+   * An empty array means no active faults.
+   */
+  async getFaultCodes(): Promise<number[]> {
+    const raw = await this.client.readHoldingRegisters(0x0204, 4);
+    await this.sleep(this.interReadDelayMs);
+    return raw.data.filter((code) => code !== 0);
   }
 
   /**

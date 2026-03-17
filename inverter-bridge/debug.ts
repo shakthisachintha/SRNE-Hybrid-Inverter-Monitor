@@ -113,12 +113,45 @@ const testGridMaxChargeCurrent = async () => {
   console.log(`Restored Grid Max Charge Current: ${restored}A`);
 };
 
+const testBatteryMaxChargeCurrent = async () => {
+  const current = await inverter.getValue(
+    READ_COMMANDS[ReadCommandKey.BatteryMaxChargeCurrent],
+  );
+  const testValue = 10;
+
+  console.log(`Current Battery Max Charge Current: ${current}A`);
+  console.log(`Setting Battery Max Charge Current to: ${testValue}A`);
+  await inverter.setSetting(
+    WRITE_COMMANDS[WriteCommandKey.BatteryMaxChargeCurrent],
+    testValue,
+  );
+  await sleep(500);
+
+  const readBack = await inverter.getValue(
+    READ_COMMANDS[ReadCommandKey.BatteryMaxChargeCurrent],
+  );
+  console.log(`Read-back Battery Max Charge Current: ${readBack}A`);
+
+  console.log(`Restoring original Battery Max Charge Current: ${current}A`);
+  await inverter.setSetting(
+    WRITE_COMMANDS[WriteCommandKey.BatteryMaxChargeCurrent],
+    current,
+  );
+  await sleep(500);
+
+  const restored = await inverter.getValue(
+    READ_COMMANDS[ReadCommandKey.BatteryMaxChargeCurrent],
+  );
+  console.log(`Restored Battery Max Charge Current: ${restored}A`);
+}
+
 async function main() {
   console.log("=== Inverter Write Command Verification ===\n");
 
   //   await testOutputPriority();
   //   await testChargerPriority();
-  await testGridMaxChargeCurrent();
+//   await testGridMaxChargeCurrent();
+  await testBatteryMaxChargeCurrent();
   console.log("\n=== Verification Complete ===");
 }
 

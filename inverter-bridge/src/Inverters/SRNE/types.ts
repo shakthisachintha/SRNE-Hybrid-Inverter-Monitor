@@ -33,7 +33,8 @@ export enum ReadCommandKey {
   BatteryOverDischargeVoltage,
   PvVoltage,
   PvCurrent,
-  PvPower,
+  PvChargePower,
+  PvTotalPower,
   GridVoltage,
   GridInputCurrent,
   GridBatteryChargeCurrent,
@@ -156,12 +157,19 @@ export const READ_COMMANDS: Record<ReadCommandKey, InverterCommand> = {
     signed: false,
     label: "PV Current",
   },
-  [ReadCommandKey.PvPower]: {
+  [ReadCommandKey.PvChargePower]: {
     address: 0x0109,
     decimals: 0,
     signed: false,
-    label: "PV Power",
+    label: "PV Charge Power",
   },
+  [ReadCommandKey.PvTotalPower]: {
+    address: 0x010a,
+    decimals: 0,
+    signed: false,
+    label: "PV Total Power",
+  },
+
   [ReadCommandKey.GridVoltage]: {
     address: 0x0213,
     decimals: 1,
